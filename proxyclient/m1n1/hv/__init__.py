@@ -1130,10 +1130,15 @@ class HV(Reloadable):
         else:
             self.cont()
 
-    def step(self):
+    def step(self, steps=1):
+        if steps == 0:
+            raise ValueError("'steps' must be at least 1.")
+
         self.u.msr(MDSCR_EL1, MDSCR(SS=1, MDE=1).value)
         self.ctx.spsr.SS = 1
         self.p.hv_pin_cpu(self.ctx.cpu_id)
+        if steps > 1:
+            self.p.hv_skip(steps - 1)
         self._switch_context()
         self.p.hv_pin_cpu(0xffffffffffffffff)
 

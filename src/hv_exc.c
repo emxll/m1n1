@@ -27,6 +27,7 @@ struct hv_pcpu_data {
     u32 pmc_pending;
     u64 pmc_irq_mode;
     u64 exc_entry_pmcr0_cnt;
+    u64 skip;
 } ALIGNED(64);
 
 struct hv_pcpu_data pcpu[MAX_CPUS];
@@ -149,6 +150,11 @@ void hv_set_time_stealing(bool enabled, bool reset)
 void hv_add_time(s64 time)
 {
     stolen_time -= (u64)time;
+}
+
+void hv_skip(u64 steps)
+{
+    PERCPU(skip) = steps;
 }
 
 static void hv_update_fiq(void)
@@ -436,6 +442,14 @@ void hv_exc_sync(struct exc_info *ctx)
                 case ESR_ISS_IMPDEF_MSR:
                     handled = hv_handle_msr_unlocked(ctx, ctx->afsr1);
                     break;
+            }
+            break;
+        case ESR_EC_SSTEP_LOWER:
+            if(PERCPU(skip)){
+                PERCPU(skip)--;
+                hv_set_spsr(ctx->spsr | SPSR_SS);
+                ctx->elr -= 4;
+                handled = true;
             }
             break;
     }

@@ -610,6 +610,7 @@ class M1N1Proxy(Reloadable):
     P_VIRTIO_PUT_BUFFER = 0xc0e
     P_HV_EXIT_CPU = 0xc0f
     P_HV_ADD_TIME = 0xc10
+    P_HV_SKIP = 0xc11
 
     P_FB_INIT = 0xd00
     P_FB_SHUTDOWN = 0xd01
@@ -1077,6 +1078,8 @@ class M1N1Proxy(Reloadable):
         return self.request(self.P_HV_EXIT_CPU, cpu)
     def hv_add_time(self, time):
         return self.request(self.P_HV_ADD_TIME, time)
+    def hv_skip(self, steps=0):
+        return self.request(self.P_HV_SKIP, steps)
 
     def fb_init(self):
         return self.request(self.P_FB_INIT)
